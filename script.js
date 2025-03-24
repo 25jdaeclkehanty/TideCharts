@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .then((response) => response.json())
     .then((data) => {
       console.log("Fetched data:", data); // Log the full response for debugging
-      
+
       // Check if 'predictions' exists and is an array before proceeding
       if (data && data.predictions && Array.isArray(data.predictions)) {
         const predictions = data.predictions;
@@ -22,18 +22,24 @@ document.addEventListener("DOMContentLoaded", () => {
         const times = [];
         const levels = [];
 
-        // Process each prediction
         predictions.forEach((pred) => {
+          // Format time: convert "YYYY-MM-DD HH:MM" into "HH:MM AM/PM"
+          const formattedTime = new Date(pred.t.replace(" ", "T")).toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "numeric",
+            hour12: true
+          });
+          
           // NOAA returns 'type' as "H" for high tide or "L" for low tide.
           const tideType = pred.type === "H" ? "High Tide" : "Low Tide";
 
-          // Create and append a new table row
+          // Create and append a new table row with the formatted time
           const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${tideType}</td><td>${pred.t}</td><td>${pred.v} ft</td>`;
+          tr.innerHTML = `<td>${tideType}</td><td>${formattedTime}</td><td>${pred.v} ft</td>`;
           tbody.appendChild(tr);
 
-          // Collect data for the chart
-          times.push(pred.t);
+          // Use formatted time for the chart labels as well (optional)
+          times.push(formattedTime);
           levels.push(parseFloat(pred.v));
         });
 
