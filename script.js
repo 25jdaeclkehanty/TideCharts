@@ -6,31 +6,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Replace with the correct NOAA station ID for Palm City, FL
   const stationId = "8722357";
-  // Build the API URL – here we request tide predictions (high/low) for today
+  // Build the API URL – requesting tide predictions (high/low) for today
   const apiUrl = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&station=${stationId}&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&format=json`;
 
   // Fetch tide data from NOAA
   fetch(apiUrl)
     .then((response) => response.json())
     .then((data) => {
-      const predictions = data.data;
+      // The NOAA response has "predictions" at the top level
+      const predictions = data.predictions;
       const tbody = document.querySelector("#tide-table tbody");
       const times = [];
       const levels = [];
 
+      // Iterate over each tide prediction
       predictions.forEach((pred) => {
-        // Each prediction has:
-        // t: time (e.g., "2025-03-15 06:28"),
-        // v: predicted tide level,
-        // hi_lo: "H" for high tide or "L" for low tide.
-        const type = pred.hi_lo === "H" ? "High Tide" : "Low Tide";
+        // pred.type is "H" for high tide or "L" for low tide
+        const tideType = pred.type === "H" ? "High Tide" : "Low Tide";
 
-        // Append a row to the table
+        // Create a table row
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${type}</td><td>${pred.t}</td><td>${pred.v} ft</td>`;
+        tr.innerHTML = `
+          <td>${tideType}</td>
+          <td>${pred.t}</td>
+          <td>${pred.v} ft</td>
+        `;
         tbody.appendChild(tr);
 
-        // Prepare data for the chart (you may choose to sort or format the times as needed)
+        // Collect data for the chart
         times.push(pred.t);
         levels.push(parseFloat(pred.v));
       });
