@@ -6,16 +6,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Replace with the correct NOAA station ID for Palm City, FL
   const stationId = "8722357";
-  // Build the API URL – here we request tide predictions (high/low) for today
+  // Build the API URL – request tide predictions (high/low) for today
   const apiUrl = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&station=${stationId}&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&format=json`;
 
   // Fetch tide data from NOAA
   fetch(apiUrl)
     .then((response) => response.json())
     .then((data) => {
-      console.log("Fetched data:", data); // Log the full response for debugging
+      console.log("Fetched data:", data); // Debug log
 
-      // Check if 'predictions' exists and is an array before proceeding
       if (data && data.predictions && Array.isArray(data.predictions)) {
         const predictions = data.predictions;
         const tbody = document.querySelector("#tide-table tbody");
@@ -23,22 +22,28 @@ document.addEventListener("DOMContentLoaded", () => {
         const levels = [];
 
         predictions.forEach((pred) => {
-          // Format time: convert "YYYY-MM-DD HH:MM" into "HH:MM AM/PM"
-          const formattedTime = new Date(pred.t.replace(" ", "T")).toLocaleTimeString("en-US", {
+          // Manually parse the time string "YYYY-MM-DD HH:MM"
+          const [datePart, timePart] = pred.t.split(" ");
+          const [year, month, day] = datePart.split("-");
+          const [hour, minute] = timePart.split(":");
+          // Create a Date object (month is 0-indexed)
+          const dateObj = new Date(year, month - 1, day, hour, minute);
+          // Format time as "HH:MM AM/PM"
+          const formattedTime = dateObj.toLocaleTimeString("en-US", {
             hour: "numeric",
             minute: "numeric",
             hour12: true
           });
-          
-          // NOAA returns 'type' as "H" for high tide or "L" for low tide.
+
+          // Determine tide type from pred.type ("H" or "L")
           const tideType = pred.type === "H" ? "High Tide" : "Low Tide";
 
-          // Create and append a new table row with the formatted time
+          // Append a new row to the table
           const tr = document.createElement("tr");
           tr.innerHTML = `<td>${tideType}</td><td>${formattedTime}</td><td>${pred.v} ft</td>`;
           tbody.appendChild(tr);
 
-          // Use formatted time for the chart labels as well (optional)
+          // For chart labels, use the formatted time
           times.push(formattedTime);
           levels.push(parseFloat(pred.v));
         });
