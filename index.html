@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Ensure proper scaling on mobile devices such as iPads -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Palm City Tide Times</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Include Chart.js for the tide chart -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Stuart Tide Times</h1>
+    <p id="date"></p>
+  </header>
+
+  <section id="tide-info">
+    <h2>Today's High and Low Tides</h2>
+    <table id="tide-table">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Time</th>
+          <th>Height</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Tide data rows will be injected here -->
+      </tbody>
+    </table>
+  </section>
+
+  <section id="tide-chart-section">
+    <h2>Tide Chart</h2>
+    <canvas id="tide-chart"></canvas>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>
