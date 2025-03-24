@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const today = new Date();
     dateDisplay.innerText = today.toDateString();
     
-    // Build the API URL using "date=today"
+    // Build the API URL using "date=today" (only supported value)
     const apiUrl = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&station=${stationId}&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&format=json`;
     console.log("Fetching data from:", apiUrl);
     
@@ -26,12 +26,12 @@ document.addEventListener("DOMContentLoaded", () => {
           const chartData = [];
 
           predictions.forEach(pred => {
-            // Manually parse the time string "YYYY-MM-DD HH:MM"
+            // Parse the time string "YYYY-MM-DD HH:MM"
             const [datePart, timePart] = pred.t.split(" ");
             const [yr, mon, dy] = datePart.split("-");
             const [hr, min] = timePart.split(":");
             const dateObj = new Date(yr, mon - 1, dy, hr, min);
-            // Format the time for table display as "HH:MM AM/PM"
+            // Format time for table display as "HH:MM AM/PM"
             const formattedTime = dateObj.toLocaleTimeString("en-US", {
               hour: "numeric",
               minute: "numeric",
@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
             tr.innerHTML = `<td>${tideType}</td><td>${formattedTime}</td><td>${pred.v} ft</td>`;
             tbody.appendChild(tr);
 
-            // Add data point for chart (using the Date object as x value)
+            // Add data point for chart (using Date object as x value)
             chartData.push({ x: dateObj, y: parseFloat(pred.v) });
           });
 
@@ -68,7 +68,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
           // Create a time-based line chart with Chart.js
           const ctx = document.getElementById("tide-chart").getContext("2d");
-          // Destroy previous chart instance if exists
           if (window.myChart) { window.myChart.destroy(); }
           window.myChart = new Chart(ctx, {
             type: "line",
