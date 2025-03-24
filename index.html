@@ -2,21 +2,29 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <!-- Ensure proper scaling on mobile devices such as iPads -->
+  <!-- Ensure proper scaling on mobile devices -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Palm City Tide Times</title>
   <link rel="stylesheet" href="styles.css" />
-  <!-- Include Chart.js for the tide chart -->
+  <!-- Include Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Include Chart.js annotation plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.1.0"></script>
+  <!-- Include Luxon and the Chart.js adapter for time scales -->
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon"></script>
 </head>
 <body>
   <header>
-    <h1>Stuart Tide Times</h1>
+    <h1>Palm City Tide Times</h1>
     <p id="date"></p>
+    <!-- New input for selecting a date (YYYY-MM-DD format) -->
+    <input type="date" id="date-input" />
+    <button id="refresh-button">Refresh Data</button>
   </header>
 
   <section id="tide-info">
-    <h2>Today's High and Low Tides</h2>
+    <h2>Tide Predictions</h2>
     <table id="tide-table">
       <thead>
         <tr>
@@ -26,7 +34,7 @@
         </tr>
       </thead>
       <tbody>
-        <!-- Tide data rows will be injected here -->
+        <!-- Table rows will be injected here -->
       </tbody>
     </table>
   </section>
