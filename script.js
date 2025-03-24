@@ -8,22 +8,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Function to fetch and display tide data for a given date (expected format: YYYY-MM-DD)
   function fetchTideData(selectedDateStr) {
-    // Default to today's date if no date is provided.
+    // If no date is provided, default to today.
     let selectedDate = selectedDateStr ? new Date(selectedDateStr) : new Date();
     const today = new Date();
 
-    // Compare the selected date and today (ignoring time)
-    const selectedDateStrFormatted = selectedDate.toDateString();
-    const todayStr = today.toDateString();
-
-    // NOAA's tide predictions API for this station only accepts "today", "latest", or "recent"
-    if (selectedDateStrFormatted !== todayStr) {
+    // Compare the selected date (ignoring time) to today's date
+    if (selectedDate.toDateString() !== today.toDateString()) {
       alert("NOAA API tide predictions for future (or past) dates are not supported for this station. Defaulting to today's data.");
       selectedDate = today;
     }
+    // At this point, selectedDate is always today.
     dateDisplay.innerText = selectedDate.toDateString();
+    // Since we're defaulting to today, set a flag accordingly.
+    const isToday = true;
 
-    // Build the API URL – use the "today" parameter since that's what NOAA supports
+    // Build the API URL using "date=today" because only today's data is supported.
     const apiUrl = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&station=${stationId}&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&format=json`;
     console.log("Fetching data from:", apiUrl);
 
@@ -45,11 +44,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const [yr, mon, dy] = datePart.split("-");
             const [hr, min] = timePart.split(":");
             const dateObj = new Date(yr, mon - 1, dy, hr, min);
-            // Format the time for table display as "HH:MM AM/PM"
+            // Format time for table display as "HH:MM AM/PM"
             const formattedTime = dateObj.toLocaleTimeString("en-US", {
               hour: "numeric",
               minute: "numeric",
-              hour12: true
+              hour12: true,
             });
             const tideType = pred.type === "H" ? "High Tide" : "Low Tide";
 
@@ -58,13 +57,89 @@ document.addEventListener("DOMContentLoaded", () => {
             tr.innerHTML = `<td>${tideType}</td><td>${formattedTime}</td><td>${pred.v} ft</td>`;
             tbody.appendChild(tr);
 
-            // Add a data point for the chart (using the Date object as x value)
+            // Add data point for chart (using Date object as x value)
             chartData.push({ x: dateObj, y: parseFloat(pred.v) });
           });
 
-          // Set chart x-axis boundaries to span the full day (midnight to 11:59 PM)
+          // Set x-axis boundaries: from midnight to 11:59 PM today
           const xMin = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0);
           const xMax = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59);
 
-          // Create an annotation for the current time if we're showing today's data
-          let
+          // Prepare annotation for the current time if we're showing today's data
+          let annotationConfig = {};
+          if (isToday) {
+            const now = new Date();
+            annotationConfig = {
+              type: "line",
+              scaleID: "x",
+              value: now,
+              borderColor: "red",
+              borderWidth: 2,
+              label: {
+                enabled: true,
+                content: "Now"
+              }
+            };
+          }
+
+          // Create a time-based line chart with Chart.js
+          const ctx = document.getElementById("tide-chart").getContext("2d");
+          // Destroy previous chart instance if exists
+          if (window.myChart) { window.myChart.destroy(); }
+          window.myChart = new Chart(ctx, {
+            type: "line",
+            data: {
+              datasets: [{
+                label: "Tide Level (ft)",
+                data: chartData,
+                borderColor: "blue",
+                backgroundColor: "rgba(0, 0, 255, 0.1)",
+                fill: true,
+                tension: 0.1,
+                parsing: false, // we supply {x, y} data directly
+              }]
+            },
+            options: {
+              responsive: true,
+              scales: {
+                x: {
+                  type: "time",
+                  time: {
+                    unit: "hour",
+                    displayFormats: { hour: "h:mm a" },
+                  },
+                  title: { display: true, text: "Time" },
+                  min: xMin,
+                  max: xMax,
+                },
+                y: {
+                  title: { display: true, text: "Tide Level (ft)" },
+                }
+              },
+              plugins: {
+                annotation: {
+                  annotations: annotationConfig && Object.keys(annotationConfig).length
+                    ? { currentTimeLine: annotationConfig }
+                    : {}
+                }
+              }
+            }
+          });
+        } else {
+          console.error("Invalid data format:", data);
+        }
+      })
+      .catch(error => {
+        console.error("Error fetching tide data:", error);
+      });
+  }
+
+  // Initial load: fetch today's data
+  fetchTideData();
+
+  // Refresh data when the refresh button is clicked
+  refreshButton.addEventListener("click", () => {
+    const selectedDate = dateInput.value; // expected in YYYY-MM-DD format
+    fetchTideData(selectedDate);
+  });
+});
